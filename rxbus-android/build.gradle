@@ -1,0 +1,54 @@
+version rootProject.ext.VERSION_NAME
+group rootProject.ext.GROUP
+
+buildscript {
+    dependencies {
+        classpath rootProject.ext.androidPlugin
+    }
+}
+
+apply plugin: 'com.android.library'
+apply from: rootProject.file('gradle/android-findbugs.gradle')
+
+android {
+    compileSdkVersion rootProject.ext.compileSdkVersion
+    buildToolsVersion rootProject.ext.buildToolsVersion
+
+    defaultConfig {
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode rootProject.ext.VERSION_CODE
+        versionName rootProject.ext.VERSION_NAME
+        testInstrumentationRunner 'android.support.test.runner.AndroidJUnitRunner'
+    }
+
+    compileOptions {
+        sourceCompatibility rootProject.ext.javaVersion
+        targetCompatibility rootProject.ext.javaVersion
+    }
+
+    lintOptions {
+        textReport true
+        textOutput 'stdout'
+        disable 'InvalidPackage'
+    }
+
+    packagingOptions {
+        exclude 'LICENSE.txt'
+    }
+
+    buildTypes {
+        debug {
+            testCoverageEnabled true
+        }
+    }
+}
+
+dependencies {
+    compile project(':rxbus')
+    compile rootProject.ext.rxAndroid
+    compile rootProject.ext.supportAnnotations
+}
+
+apply from: rootProject.file('gradle/checkstyle.gradle')
+apply from: rootProject.file('gradle/mvn-push.gradle')
