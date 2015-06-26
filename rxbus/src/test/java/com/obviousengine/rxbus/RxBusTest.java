@@ -16,17 +16,23 @@
 
 package com.obviousengine.rxbus;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import org.junit.Test;
 
 import rx.Observer;
+import rx.Subscription;
 import rx.subjects.Subject;
+import rx.subscriptions.CompositeSubscription;
 
 public class RxBusTest {
 
@@ -43,9 +49,10 @@ public class RxBusTest {
     public void publishEvent() throws Exception {
         Bus bus = RxBus.create();
         Observer<Event> observer = spy(new PrintingObserver<Event>());
-        bus.subscribe(events, observer);
+        Subscription subscription = bus.subscribe(events, observer);
         Event event = Event.create();
         bus.publish(events, event);
+        subscription.unsubscribe();
         verify(observer).onNext(event);
         verify(observer, never()).onCompleted();
     }
@@ -63,6 +70,37 @@ public class RxBusTest {
         verify(logger).log(anyString());
     }
 
+    @Test
+    public void oneQueueMultipleObservers() throws Exception {
+        Bus bus = RxBus.create();
+        CompositeSubscription subscriptions = new CompositeSubscription();
+        List<Observer<Event>> observers = new ArrayList<>();
+        for (int i = 0; i < 100; i++) {
+            Observer<Event> observer = spy(new NoopObserver<Event>());
+            observers.add(observer);
+            subscriptions.add(bus.subscribe(events, observer));
+        }
+        Event event = Event.create();
+        bus.publish(events, event);
+        subscriptions.unsubscribe();
+        for (Observer<Event> observer : observers) {
+            verify(observer).onNext(event);
+        }
+    }
+
+    @Test
+    public void allEventsGoThrough() throws Exception {
+        final int numEvents = 1000;
+        Bus bus = RxBus.create();
+        CountingObserver observer = new CountingObserver();
+        Subscription subscription = bus.subscribe(events, observer);
+        for (int i = 0; i < numEvents; i++) {
+            bus.publish(events, Event.create());
+        }
+        subscription.unsubscribe();
+        assertEquals(numEvents, observer.getCount());
+    }
+
     static class PrintingObserver<V> implements Observer<V> {
         @Override
         public void onCompleted() {
@@ -77,6 +115,43 @@ public class RxBusTest {
         @Override
         public void onNext(V v) {
             System.out.println("onNext() called with " + v);
+        }
+    }
+
+    static class CountingObserver implements Observer<Event> {
+
+        private final AtomicInteger count = new AtomicInteger();
+
+        @Override
+        public void onCompleted() {
+        }
+
+        @Override
+        public void onError(Throwable e) {
+            throw new RuntimeException(e);
+        }
+
+        @Override
+        public void onNext(Event event) {
+            count.incrementAndGet();
+        }
+
+        int getCount() {
+            return count.get();
+        }
+    }
+
+    static class NoopObserver<V> implements Observer<V> {
+        @Override
+        public void onCompleted() {
+        }
+
+        @Override
+        public void onError(Throwable e) {
+        }
+
+        @Override
+        public void onNext(V v) {
         }
     }
 }
