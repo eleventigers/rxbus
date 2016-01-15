@@ -4,7 +4,7 @@ group rootProject.ext.GROUP
 apply plugin: 'java'
 
 dependencies {
-    compile rootProject.ext.rx
+    compile rootProject.ext.rxJava
     testCompile rootProject.ext.junit
     testCompile rootProject.ext.mockito
 }
