@@ -1,0 +1,39 @@
+language: android
+
+android:
+  components:
+    - build-tools-23.0.1
+    - android-23
+    - extra-android-m2repository
+    - sys-img-armeabi-v7a-android-18
+
+jdk:
+  - oraclejdk8
+
+script:
+  - ./gradlew ":$MODULE:build"
+
+after_success:
+  - .buildscript/deploy_snapshot.sh
+
+env:
+  matrix:
+    - MODULE=rxbus
+    - MODULE=rxbus-android
+    - MODULE=rxbus-dispatcher
+  global:
+    - secure: ""
+    - secure: ""
+
+branches:
+  except:
+    - gh-pages
+
+notifications:
+  email: false
+
+sudo: false
+
+cache:
+  directories:
+    - $HOME/.gradle
