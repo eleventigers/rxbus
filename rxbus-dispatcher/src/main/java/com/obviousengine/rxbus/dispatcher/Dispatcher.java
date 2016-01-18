@@ -16,11 +16,13 @@
 
 package com.obviousengine.rxbus.dispatcher;
 
+import com.obviousengine.rxbus.Queue;
+
 public interface Dispatcher {
 
-    <T> void publish(T event);
+    <T> void publish(Queue<T> queue, T event);
 
-    <T> void register(Class<T> eventClass, Station<T> station);
+    <T> void register(Queue<T> queue, Station<T> station);
 
     <T> void unregister(Station<T> station);
 }

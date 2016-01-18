@@ -27,7 +27,6 @@ import rx.Subscription;
 final class DefaultDispatcher implements Dispatcher {
 
     private final Map<Station<?>, Subscription> subscriptions = new ConcurrentHashMap<>(8);
-    private final Map<Class<?>, Queue<?>> queues = new ConcurrentHashMap<>(4);
 
     private final Bus bus;
     private final Scheduler busScheduler;
@@ -40,15 +39,14 @@ final class DefaultDispatcher implements Dispatcher {
     }
 
     @Override
-    public <T> void publish(T event) {
-        bus.publish(queue(event.getClass()), event);
+    public <T> void publish(Queue<T> queue, T event) {
+        bus.publish(queue, event);
     }
 
     @Override
-    public <T> void register(Class<T> eventClass, Station<T> station) {
+    public <T> void register(Queue<T> queue, Station<T> station) {
         synchronized (subscriptions) {
             if (!subscriptions.containsKey(station)) {
-                Queue<T> queue = queue(eventClass);
                 subscriptions.put(station, bus.subscribe(
                         queue, new SinkSubscriber<>(station, flusher, errorListener), busScheduler));
             }
@@ -61,23 +59,6 @@ final class DefaultDispatcher implements Dispatcher {
         if (subscription != null) {
             subscription.unsubscribe();
         }
-    }
-
-    @SuppressWarnings("unchecked")
-    private <T> Queue<T> queue(Class<?> eventClass) {
-        Queue<T> queue = (Queue<T>) queues.get(eventClass);
-
-        if (queue == null) {
-            synchronized (queues) {
-                queue = (Queue<T>) queues.get(eventClass);
-                if (queue == null) {
-                    queue = Queue.of((Class<T>) eventClass).build();
-                    queues.put(eventClass, queue);
-                }
-            }
-        }
-
-        return queue;
     }
 
     private static class SinkSubscriber<T> extends Subscriber<T> {

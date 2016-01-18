@@ -24,6 +24,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import com.obviousengine.rxbus.Bus;
+import com.obviousengine.rxbus.Queue;
 import com.obviousengine.rxbus.RxBus;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.Before;
@@ -37,6 +38,7 @@ import rx.schedulers.TestScheduler;
 public final class DefaultDispatcherTest {
 
     private final EventA eventA = new EventA();
+    private final Queue<EventA> queue = Queue.of(EventA.class).build();
     private final Bus bus = RxBus.create();
     private final Station<EventA> stationA1 = mock(Station.class);
     private final Station<EventA> stationA2 = mock(Station.class);
@@ -60,8 +62,8 @@ public final class DefaultDispatcherTest {
 
     @Test
     public void singleStationSingleEvent() {
-        dispatcher.register(EventA.class, stationA1);
-        dispatcher.publish(eventA);
+        dispatcher.register(queue, stationA1);
+        dispatcher.publish(queue, eventA);
         scheduler.triggerActions();
 
         verify(stationA1).receive(eventA);
@@ -72,9 +74,9 @@ public final class DefaultDispatcherTest {
 
     @Test
     public void multipleStationSingleEvent() {
-        dispatcher.register(EventA.class, stationA1);
-        dispatcher.register(EventA.class, stationA2);
-        dispatcher.publish(eventA);
+        dispatcher.register(queue, stationA1);
+        dispatcher.register(queue, stationA2);
+        dispatcher.publish(queue, eventA);
         scheduler.triggerActions();
 
         verify(stationA1).receive(eventA);
@@ -88,15 +90,15 @@ public final class DefaultDispatcherTest {
 
     @Test
     public void singleStationRegisterUnregister() {
-        dispatcher.register(EventA.class, stationA1);
-        dispatcher.publish(eventA);
+        dispatcher.register(queue, stationA1);
+        dispatcher.publish(queue, eventA);
         scheduler.triggerActions();
         dispatcher.unregister(stationA1);
 
         verify(stationA1).receive(eventA);
         verify(stationA1).flush();
 
-        dispatcher.publish(eventA);
+        dispatcher.publish(queue, eventA);
         scheduler.triggerActions();
 
         verifyNoMoreInteractions(stationA1);
@@ -112,8 +114,8 @@ public final class DefaultDispatcherTest {
             }
         }).when(stationA1).receive(eventA);
 
-        dispatcher.register(EventA.class, stationA1);
-        dispatcher.publish(eventA);
+        dispatcher.register(queue, stationA1);
+        dispatcher.publish(queue, eventA);
         scheduler.triggerActions();
 
         verify(stationA1).receive(eventA);
@@ -139,9 +141,9 @@ public final class DefaultDispatcherTest {
             }
         }).when(stationA1).receive(eventA);
 
-        dispatcher.register(EventA.class, stationA1);
-        dispatcher.publish(eventA);
-        dispatcher.publish(eventA);
+        dispatcher.register(queue, stationA1);
+        dispatcher.publish(queue, eventA);
+        dispatcher.publish(queue, eventA);
         scheduler.triggerActions();
 
         verify(stationA1, times(2)).receive(eventA);
