@@ -7,7 +7,6 @@ buildscript {
 apply plugin: 'com.android.library'
 apply from: rootProject.file('gradle/android-findbugs.gradle')
 apply from: rootProject.file('gradle/checkstyle.gradle')
-apply from: rootProject.file('gradle/mvn-push.gradle')
 
 dependencies {
     compile project(':rxbus')
@@ -50,3 +49,5 @@ android {
         }
     }
 }
+
+apply from: rootProject.file('gradle/mvn-push.gradle')

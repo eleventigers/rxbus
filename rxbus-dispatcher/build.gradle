@@ -1,6 +1,5 @@
 apply plugin: 'java'
 apply from: rootProject.file('gradle/checkstyle.gradle')
-apply from: rootProject.file('gradle/mvn-push.gradle')
 
 dependencies {
     compile project(':rxbus')
@@ -13,3 +12,5 @@ compileJava {
     sourceCompatibility = rootProject.ext.javaVersion
     targetCompatibility = rootProject.ext.javaVersion
 }
+
+apply from: rootProject.file('gradle/mvn-push.gradle')
