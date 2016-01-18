@@ -1,0 +1,20 @@
+version rootProject.ext.VERSION_NAME
+group rootProject.ext.GROUP
+
+apply plugin: 'java'
+
+dependencies {
+    compile project(':rxbus')
+    testCompile rootProject.ext.junit
+    testCompile rootProject.ext.mockito
+    testCompile rootProject.ext.truth
+}
+
+compileJava {
+    sourceCompatibility = rootProject.ext.javaVersion
+    targetCompatibility = rootProject.ext.javaVersion
+}
+
+
+apply from: rootProject.file('gradle/checkstyle.gradle')
+apply from: rootProject.file('gradle/mvn-push.gradle')
