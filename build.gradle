@@ -1,68 +1,17 @@
-allprojects {
+subprojects {
     buildscript {
         repositories {
-            jcenter()
             mavenCentral()
+            jcenter()
         }
     }
 
     repositories {
-        jcenter()
+        mavenCentral()
     }
-}
 
-def String getWorkingBranch() {
-    'git rev-parse --abbrev-ref HEAD'.execute([], rootDir).text.trim()
-}
-
-def boolean isDirty() {
-    'git describe --dirty'.execute([], rootDir).text.trim().contains("dirty")
-}
-
-def boolean isReleaseBuild() {
-    getWorkingBranch().equals('master') && !isDirty()
-}
-
-def int getVersionCode() {
-    String count = 'git rev-list --first-parent --count HEAD'.execute([], rootDir).text.trim();
-    if (count.isEmpty()) {
-        0;
-    } else {
-        Integer.parseInt(count)
-    }
-}
-
-def String getVersionName() {
-    def versionPropsFile = file('version.properties')
-    def Properties versionProps = new Properties()
-    versionProps.load(new FileInputStream(versionPropsFile))
-    def version = versionProps['major'] + "." + versionProps['minor'] + "." + versionProps['patch']
-    return isReleaseBuild() ? version : version.concat("-SNAPSHOT");
-}
-
-task bumpMajor << {
-    ant.propertyfile(file: 'version.properties') {
-        entry(key: 'major', type: 'int', operation: '+', value: 1)
-        entry(key: 'minor', type: 'int', operation: '=', value: 0)
-        entry(key: 'patch', type: 'int', operation: '=', value: 0)
-    }
-}
-
-task bumpMinor << {
-    ant.propertyfile(file: 'version.properties') {
-        entry(key: 'minor', type: 'int', operation: '+', value: 1)
-        entry(key: 'patch', type: 'int', operation: '=', value: 0)
-    }
-}
-
-task bumpPatch << {
-    ant.propertyfile(file: 'version.properties') {
-        entry(key: 'patch', type: 'int', operation: '+', value: 1)
-    }
-}
-
-task version << {
-    println getVersionName()
+    group = GROUP
+    version = VERSION_NAME
 }
 
 ext {
@@ -80,22 +29,4 @@ ext {
     junit = 'junit:junit:4.12'
     truth = 'com.google.truth:truth:0.25'
     mockito = 'org.mockito:mockito-core:1.10.8'
-
-    VERSION_NAME = getVersionName()
-    VERSION_CODE = getVersionCode()
-
-    GROUP = 'net.jokubasdargis.rxbus'
-
-    POM_DESCRIPTION='Event bus running on type safe RxJava queues'
-    POM_URL = 'https://github.com/eleventigers/rxbus'
-    POM_SCM_URL = 'https://github.com/eleventigers/rxbus'
-    POM_SCM_CONNECTION = 'scm:git:git://github.com/eleventigers/rxbus.git'
-    POM_SCM_DEV_CONNECTION = 'scm:git:ssh://git@github.com:eleventigers/rxbus.git'
-
-    POM_LICENCE_NAME='The Apache Software License, Version 2.0'
-    POM_LICENCE_URL='http://www.apache.org/licenses/LICENSE-2.0.txt'
-    POM_LICENCE_DIST='repo'
-
-    POM_DEVELOPER_ID = 'eleventigers'
-    POM_DEVELOPER_NAME = 'Jokubas Dargis'
 }
