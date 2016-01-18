@@ -1,0 +1,29 @@
+language: android
+android:
+  components:
+  - build-tools-23.0.1
+  - android-23
+  - extra-android-m2repository
+jdk:
+- oraclejdk8
+script:
+- ./gradlew ":$MODULE:build"
+after_success:
+- ".buildscript/deploy_snapshot.sh"
+env:
+  matrix:
+  - MODULE=rxbus
+  - MODULE=rxbus-android
+  - MODULE=rxbus-dispatcher
+  global:
+  - secure: sBk32v3IvSnVRmTG3MfbF1GAW/Zd8FZtqIvBsYCOQyG8R1a6nlcXPdVJpFNeqGnSAREt3pEVAZLR3DqQSE5Mt4h5X075xn7I4786/GkeE6MKpEpxHfHMZxJ45wmqET3G0uB616EwhR2Ps7WtyoscH+90d6r9B71SgEip0p2Fic/wfU9uSvgawZKyaGdKDK91Pk/SOj72JlWpkUfc4ltfWKVAAuWTYmSxZm0UNcMssshFv6aiaskDeBC+qb4T1LlO5YJtA3fwlgqjy+8MYfbexuuE1BfyFVo7v3Epbk6pqeOj3v46m0JfFvKVoAjEYqE/7BLUUJbsVBjnJqTCb4ltZC78wBFXmiccuSrjmSXvOCTjesatOf0WT/zixsw3ijcf5dm/lbJI0W8jhrY3hWkPquZd8OCg6aIxLIg7CEGkuu7ZYmEQRQ6gs+klA8XK5GKm18oAris9VhiQax+sfpCupohL+JWID+c9lNGsue1kDnHZSqHhUsFZjuSLDkd2vbOvtOsz9IUnK1x+ilT7ICBBJ4zbBxQrmra4u7M3cUF10QW+7KUaR1rwaIEeVHkV1x83eth7fCeR+EV7hOpA5wJ8er7Ej/DxpMfsJM+OCIBgWCogDyu1OPBBXYgecHRGG0fWcErl3bGY5PuwvtlmKJ4mmzrxdU3cgLXGSams3VQIQo4=
+  - secure: d8VDTMqfLzKbxFs3l96AHbL2PV8h49+hHcaOc5bk1weTH5elqiou5+hFHOHr+sByLzv95VZ9NqFCWph6GwxZYxIWfHdlQO/CLEM9p9/IX50pjer0Mww+D25bJXTDUyJrHVodxXkWhLruLJgkTD1uAT4ouQl+4RnT/rLPJTs9dDFz5csL58dUx/+9ZJB3AvJ/6LITUdxtutb15jPeG+3u7JoDymks0gcgmgQdfxEQv9e0r3vpT6Xm86FJ7rat84t1lXKnb3Pw7R8s2YvE48MB9EENr2wkBsuDk/WdszMJGra/MkzNtpbQRGr4qYihwnf3qzMdBlOs9L93XM/K9rLn9uQErOBP9le4KODAIM44KwA42VmSbuPHPnNWfYW+XOdYpDP76JnvecNc4Vyz+9H+CEfpHN47DqhWNwdNzmf2udVBW6znkFSW9CsVpbz7Mjj9zEcoHA9e/fcx4HsPXflt2nvXWnHDr0FSqLzKyUEgXO/rF0e5USrdjyHUU7RcsRT7uEwrL0jIEx0jiXdyZ7Jlsqs+XhW5yi/E5ECHLHFn+xkdOlXI0AADGFOJ3j1/5xBo0xgyvpTzoxspBRDc1xRPHa7ME4YyZclOZ2UTHHeEIQrubPASEEFBP1zhRtnp6Vpqn0wNkGq661EELEo4nYsnw5Jnisbur/Xo4cO7p82ibkk=
+branches:
+  except:
+  - gh-pages
+notifications:
+  email: false
+sudo: false
+cache:
+  directories:
+  - "$HOME/.gradle"
