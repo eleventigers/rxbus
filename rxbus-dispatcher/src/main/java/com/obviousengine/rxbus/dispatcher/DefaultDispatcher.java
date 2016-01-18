@@ -48,7 +48,7 @@ final class DefaultDispatcher implements Dispatcher {
         synchronized (subscriptions) {
             if (!subscriptions.containsKey(station)) {
                 subscriptions.put(station, bus.subscribe(
-                        queue, new SinkSubscriber<>(station, flusher, errorListener), busScheduler));
+                        queue, new StationSubscriber<>(station, flusher, errorListener), busScheduler));
             }
         }
     }
@@ -61,13 +61,13 @@ final class DefaultDispatcher implements Dispatcher {
         }
     }
 
-    private static class SinkSubscriber<T> extends Subscriber<T> {
+    private static class StationSubscriber<T> extends Subscriber<T> {
 
         private final Station<T> station;
         private final Flusher flusher;
         private final ErrorListener errorListener;
 
-        SinkSubscriber(Station<T> station, Flusher flusher, ErrorListener errorListener) {
+        StationSubscriber(Station<T> station, Flusher flusher, ErrorListener errorListener) {
             this.station = station;
             this.flusher = flusher;
             this.errorListener = errorListener;
@@ -94,6 +94,13 @@ final class DefaultDispatcher implements Dispatcher {
             } finally {
                 flusher.schedule(station);
             }
+        }
+
+        @Override
+        public String toString() {
+            return "StationSubscriber{" +
+                    "station=" + station +
+                    '}';
         }
     }
 
