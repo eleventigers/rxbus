@@ -18,11 +18,13 @@ package com.obviousengine.rxbus;
 
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.WeakHashMap;
 
 import rx.Observer;
 import rx.Scheduler;
@@ -186,7 +188,8 @@ public final class RxBus implements Bus {
 
     private static final class DefaultQueueCache implements QueueCache {
 
-        private final Map<Queue<?>, Subject<?, ?>> map = new HashMap<>();
+        private final Map<Queue<?>, Subject<?, ?>> map
+                = Collections.synchronizedMap(new WeakHashMap<Queue<?>, Subject<?, ?>>());
 
         @Override
         @SuppressWarnings("unchecked")

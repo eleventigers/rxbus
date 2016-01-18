@@ -16,30 +16,32 @@
 
 package com.obviousengine.rxbus;
 
+import java.util.concurrent.TimeUnit;
+
 public final class Event {
 
     public static Event create() {
-        return new Event(System.currentTimeMillis());
+        return new Event(System.nanoTime());
     }
 
     public static Event create(long timestamp) {
         return new Event(timestamp);
     }
 
-    private final long timestamp;
+    private final long timestampNanos;
 
     private Event(long timestamp) {
-        this.timestamp = timestamp;
+        this.timestampNanos = timestamp;
     }
 
-    public long getTimestamp() {
-        return timestamp;
+    public long getTimestamp(TimeUnit unit) {
+        return unit.convert(timestampNanos, TimeUnit.NANOSECONDS);
     }
 
     @Override
     public String toString() {
         return "Event{"
-               + "timestamp=" + timestamp
+               + "timestamp=" + timestampNanos
                + '}';
     }
 }
