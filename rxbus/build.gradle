@@ -7,9 +7,7 @@ dependencies {
     testCompile rootProject.ext.mockito
 }
 
-compileJava {
-    sourceCompatibility = rootProject.ext.javaVersion
-    targetCompatibility = rootProject.ext.javaVersion
-}
+sourceCompatibility = rootProject.ext.javaVersion
+targetCompatibility = rootProject.ext.javaVersion
 
 apply from: rootProject.file('gradle/mvn-push.gradle')
