@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.obviousengine.rxbus.station;
+package com.obviousengine.rxbus.dispatcher;
 
 import com.obviousengine.rxbus.Bus;
 import com.obviousengine.rxbus.RxBus;
@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit;
 import rx.Scheduler;
 import rx.schedulers.Schedulers;
 
-public final class RxBusStation {
+public final class RxBusDispatcher {
 
     public static Builder builder() {
         return new Builder();
@@ -83,7 +83,7 @@ public final class RxBusStation {
             return this;
         }
 
-        public BusStation build() {
+        public Dispatcher build() {
             if (bus == null) {
                 bus = RxBus.create();
             }
@@ -105,14 +105,14 @@ public final class RxBusStation {
                 errorListener = ErrorListener.NOOP;
             }
 
-            return DefaultBusStation.create(bus, busScheduler,
+            return DefaultDispatcher.create(bus, busScheduler,
                                             DefaultFlusher.create(flushScheduler, flushDelay,
                                                                   flushDelayTimeUnit),
                                             errorListener);
         }
     }
 
-    private RxBusStation() {
+    private RxBusDispatcher() {
         throw new AssertionError("No instances");
     }
 }

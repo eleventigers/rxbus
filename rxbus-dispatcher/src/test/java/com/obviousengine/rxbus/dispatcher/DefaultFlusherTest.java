@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.obviousengine.rxbus.station;
+package com.obviousengine.rxbus.dispatcher;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;

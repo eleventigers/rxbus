@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package com.obviousengine.rxbus.station;
+package com.obviousengine.rxbus.dispatcher;
 
-public interface Flusher {
+public interface Flushable {
 
-    void schedule(Flushable flushable);
+    void flush();
 }

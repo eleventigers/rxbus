@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.obviousengine.rxbus.station;
+package com.obviousengine.rxbus.dispatcher;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doAnswer;
@@ -34,16 +34,16 @@ import rx.schedulers.Schedulers;
 import rx.schedulers.TestScheduler;
 
 @SuppressWarnings("unchecked")
-public final class DefaultBusStationTest {
+public final class DefaultDispatcherTest {
 
     private final EventA eventA = new EventA();
     private final Bus bus = RxBus.create();
-    private final Sink<EventA> sinkA1 = mock(Sink.class);
-    private final Sink<EventA> sinkA2 = mock(Sink.class);
+    private final Station<EventA> stationA1 = mock(Station.class);
+    private final Station<EventA> stationA2 = mock(Station.class);
     private final Flusher flusher = mock(Flusher.class);
     private final ErrorListener errorListener = mock(ErrorListener.class);
     private final TestScheduler scheduler = Schedulers.test();
-    private final BusStation busStation = DefaultBusStation.create(
+    private final Dispatcher dispatcher = DefaultDispatcher.create(
             bus, scheduler, flusher, errorListener);
 
     @Before
@@ -51,81 +51,81 @@ public final class DefaultBusStationTest {
         doAnswer(new Answer() {
             @Override
             public Object answer(InvocationOnMock invocation) throws Throwable {
-                Sink sink = (Sink) invocation.getArguments()[0];
-                sink.flush();
+                Station station = (Station) invocation.getArguments()[0];
+                station.flush();
                 return null;
             }
-        }).when(flusher).schedule(any(Sink.class));
+        }).when(flusher).schedule(any(Station.class));
     }
 
     @Test
-    public void singleSinkSingleEvent() {
-        busStation.register(EventA.class, sinkA1);
-        busStation.publish(eventA);
+    public void singleStationSingleEvent() {
+        dispatcher.register(EventA.class, stationA1);
+        dispatcher.publish(eventA);
         scheduler.triggerActions();
 
-        verify(sinkA1).receive(eventA);
-        verify(sinkA1).flush();
+        verify(stationA1).receive(eventA);
+        verify(stationA1).flush();
 
-        verifyNoMoreInteractions(sinkA1);
+        verifyNoMoreInteractions(stationA1);
     }
 
     @Test
-    public void multipleSinkSingleEvent() {
-        busStation.register(EventA.class, sinkA1);
-        busStation.register(EventA.class, sinkA2);
-        busStation.publish(eventA);
+    public void multipleStationSingleEvent() {
+        dispatcher.register(EventA.class, stationA1);
+        dispatcher.register(EventA.class, stationA2);
+        dispatcher.publish(eventA);
         scheduler.triggerActions();
 
-        verify(sinkA1).receive(eventA);
-        verify(sinkA1).flush();
-        verify(sinkA2).receive(eventA);
-        verify(sinkA2).flush();
+        verify(stationA1).receive(eventA);
+        verify(stationA1).flush();
+        verify(stationA2).receive(eventA);
+        verify(stationA2).flush();
 
-        verifyNoMoreInteractions(sinkA1, sinkA2);
+        verifyNoMoreInteractions(stationA1, stationA2);
 
     }
 
     @Test
-    public void singleSinkRegisterUnregister() {
-        busStation.register(EventA.class, sinkA1);
-        busStation.publish(eventA);
+    public void singleStationRegisterUnregister() {
+        dispatcher.register(EventA.class, stationA1);
+        dispatcher.publish(eventA);
         scheduler.triggerActions();
-        busStation.unregister(sinkA1);
+        dispatcher.unregister(stationA1);
 
-        verify(sinkA1).receive(eventA);
-        verify(sinkA1).flush();
+        verify(stationA1).receive(eventA);
+        verify(stationA1).flush();
 
-        busStation.publish(eventA);
+        dispatcher.publish(eventA);
         scheduler.triggerActions();
 
-        verifyNoMoreInteractions(sinkA1);
+        verifyNoMoreInteractions(stationA1);
     }
 
     @Test
-    public void singleSinkFlushWhenReceiveThrows() {
+    public void singleStationFlushWhenReceiveThrows() {
         final Throwable error = new RuntimeException();
         doAnswer(new Answer() {
             @Override
             public Object answer(InvocationOnMock invocation) throws Throwable {
                 throw error;
             }
-        }).when(sinkA1).receive(eventA);
+        }).when(stationA1).receive(eventA);
 
-        busStation.register(EventA.class, sinkA1);
-        busStation.publish(eventA);
+        dispatcher.register(EventA.class, stationA1);
+        dispatcher.publish(eventA);
         scheduler.triggerActions();
 
-        verify(sinkA1).receive(eventA);
-        verify(sinkA1).flush();
+        verify(stationA1).receive(eventA);
+        verify(stationA1).flush();
         verify(errorListener).onError(error);
 
-        verifyNoMoreInteractions(sinkA1);
+        verifyNoMoreInteractions(stationA1);
         verifyNoMoreInteractions(errorListener);
     }
 
     @Test
-    public void singleSinkReceiveAfterReceiveThrows() {
+    public void singleStationReceiveAfterReceiveThrows() {
         final Throwable error = new RuntimeException();
         final AtomicBoolean thrown = new AtomicBoolean();
         doAnswer(new Answer() {
@@ -137,18 +137,18 @@ public final class DefaultBusStationTest {
                     return null;
                 }
             }
-        }).when(sinkA1).receive(eventA);
+        }).when(stationA1).receive(eventA);
 
-        busStation.register(EventA.class, sinkA1);
-        busStation.publish(eventA);
-        busStation.publish(eventA);
+        dispatcher.register(EventA.class, stationA1);
+        dispatcher.publish(eventA);
+        dispatcher.publish(eventA);
         scheduler.triggerActions();
 
-        verify(sinkA1, times(2)).receive(eventA);
-        verify(sinkA1, times(2)).flush();
+        verify(stationA1, times(2)).receive(eventA);
+        verify(stationA1, times(2)).flush();
         verify(errorListener).onError(error);
 
-        verifyNoMoreInteractions(sinkA1);
+        verifyNoMoreInteractions(stationA1);
         verifyNoMoreInteractions(errorListener);
     }
 

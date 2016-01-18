@@ -14,13 +14,9 @@
  * limitations under the License.
  */
 
-package com.obviousengine.rxbus.station;
+package com.obviousengine.rxbus.dispatcher;
 
-public interface BusStation {
+public interface Flusher {
 
-    <T> void publish(T event);
-
-    <T> void register(Class<T> eventClass, Sink<T> sink);
-
-    <T> void unregister(Sink<T> sink);
+    void schedule(Flushable flushable);
 }

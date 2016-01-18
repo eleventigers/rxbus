@@ -1,4 +1,4 @@
-package com.obviousengine.rxbus.station;
+package com.obviousengine.rxbus.dispatcher;
 
 import java.util.Deque;
 import java.util.concurrent.ConcurrentLinkedDeque;

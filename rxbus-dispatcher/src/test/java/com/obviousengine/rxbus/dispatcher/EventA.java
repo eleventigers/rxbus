@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 
-package com.obviousengine.rxbus.station;
+package com.obviousengine.rxbus.dispatcher;
 
-public interface Sink<T> extends Flushable {
-
-    void receive(T event);
-}
+class EventA { }

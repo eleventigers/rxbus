@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.obviousengine.rxbus.station;
+package com.obviousengine.rxbus.dispatcher;
 
 import com.obviousengine.rxbus.Bus;
 import com.obviousengine.rxbus.Queue;
@@ -24,9 +24,9 @@ import rx.Scheduler;
 import rx.Subscriber;
 import rx.Subscription;
 
-final class DefaultBusStation implements BusStation {
+final class DefaultDispatcher implements Dispatcher {
 
-    private final Map<Sink<?>, Subscription> subscriptions = new ConcurrentHashMap<>(8);
+    private final Map<Station<?>, Subscription> subscriptions = new ConcurrentHashMap<>(8);
     private final Map<Class<?>, Queue<?>> queues = new ConcurrentHashMap<>(4);
 
     private final Bus bus;
@@ -34,9 +34,9 @@ final class DefaultBusStation implements BusStation {
     private final Flusher flusher;
     private final ErrorListener errorListener;
 
-    public static BusStation create(Bus bus, Scheduler scheduler, Flusher flusher,
+    public static Dispatcher create(Bus bus, Scheduler scheduler, Flusher flusher,
                                     ErrorListener errorListener) {
-        return new DefaultBusStation(bus, scheduler, flusher, errorListener);
+        return new DefaultDispatcher(bus, scheduler, flusher, errorListener);
     }
 
     @Override
@@ -45,19 +45,19 @@ final class DefaultBusStation implements BusStation {
     }
 
     @Override
-    public <T> void register(Class<T> eventClass, Sink<T> sink) {
+    public <T> void register(Class<T> eventClass, Station<T> station) {
         synchronized (subscriptions) {
-            if (!subscriptions.containsKey(sink)) {
+            if (!subscriptions.containsKey(station)) {
                 Queue<T> queue = queue(eventClass);
-                subscriptions.put(sink, bus.subscribe(
-                        queue, new SinkSubscriber<>(sink, flusher, errorListener), busScheduler));
+                subscriptions.put(station, bus.subscribe(
+                        queue, new SinkSubscriber<>(station, flusher, errorListener), busScheduler));
             }
         }
     }
 
     @Override
-    public <T> void unregister(Sink<T> sink) {
-        Subscription subscription = subscriptions.remove(sink);
+    public <T> void unregister(Station<T> station) {
+        Subscription subscription = subscriptions.remove(station);
         if (subscription != null) {
             subscription.unsubscribe();
         }
@@ -82,12 +82,12 @@ final class DefaultBusStation implements BusStation {
 
     private static class SinkSubscriber<T> extends Subscriber<T> {
 
-        private final Sink<T> sink;
+        private final Station<T> station;
         private final Flusher flusher;
         private final ErrorListener errorListener;
 
-        SinkSubscriber(Sink<T> sink, Flusher flusher, ErrorListener errorListener) {
-            this.sink = sink;
+        SinkSubscriber(Station<T> station, Flusher flusher, ErrorListener errorListener) {
+            this.station = station;
             this.flusher = flusher;
             this.errorListener = errorListener;
         }
@@ -105,18 +105,18 @@ final class DefaultBusStation implements BusStation {
         @Override
         public void onNext(T t) {
             try {
-                sink.receive(t);
+                station.receive(t);
             } catch (Throwable throwable) {
                 // We want to continue using this subscriber even if the receiver throws
                 // so we just pass the error to a dedicated handler
                 errorListener.onError(throwable);
             } finally {
-                flusher.schedule(sink);
+                flusher.schedule(station);
             }
         }
     }
 
-    private DefaultBusStation(Bus bus, Scheduler busScheduler, Flusher flusher,
+    private DefaultDispatcher(Bus bus, Scheduler busScheduler, Flusher flusher,
                               ErrorListener errorListener) {
         this.bus = bus;
         this.busScheduler = busScheduler;

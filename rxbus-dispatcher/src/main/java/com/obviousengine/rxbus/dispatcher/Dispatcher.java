@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 
-package com.obviousengine.rxbus.station;
+package com.obviousengine.rxbus.dispatcher;
 
-public interface ErrorListener {
+public interface Dispatcher {
 
-    void onError(Throwable throwable);
+    <T> void publish(T event);
 
-    ErrorListener NOOP = new ErrorListener() {
-        @Override
-        public void onError(Throwable throwable) {
-            // no-op
-        }
-    };
+    <T> void register(Class<T> eventClass, Station<T> station);
+
+    <T> void unregister(Station<T> station);
 }
