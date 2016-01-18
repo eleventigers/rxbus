@@ -81,6 +81,11 @@ afterEvaluate { project ->
             failOnError = false
             source = android.sourceSets.main.java.srcDirs
             classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+            exclude '**/internal/*'
+
+            if (JavaVersion.current().isJava8Compatible()) {
+                options.addStringOption('Xdoclint:none', '-quiet')
+            }
         }
 
         task androidJavadocsJar(type: Jar, dependsOn: androidJavadocs) {
@@ -96,6 +101,27 @@ afterEvaluate { project ->
         artifacts {
             archives androidSourcesJar
             archives androidJavadocsJar
+        }
+    } else {
+        javadoc {
+            if (JavaVersion.current().isJava8Compatible()) {
+                options.addStringOption('Xdoclint:none', '-quiet')
+            }
+        }
+
+        task javadocJar(type: Jar, dependsOn: javadoc) {
+            classifier 'javadoc'
+            from "$buildDir/docs/javadoc"
+        }
+
+        task sourcesJar(type: Jar) {
+            classifier = 'sources'
+            from sourceSets.main.allSource
+        }
+
+        artifacts {
+            archives sourcesJar
+            archives javadocJar
         }
     }
 }
