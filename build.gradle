@@ -21,6 +21,8 @@ ext {
     buildToolsVersion = '23.0.1'
     javaVersion = JavaVersion.VERSION_1_7
 
+    ci = 'true'.equals(System.getenv('CI'))
+
     androidPlugin = 'com.android.tools.build:gradle:2.0.0-alpha5'
     supportAnnotations = 'com.android.support:support-annotations:22.1.1'
 
