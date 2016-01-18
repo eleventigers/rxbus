@@ -19,11 +19,13 @@ package com.obviousengine.rxbus.station;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import com.obviousengine.rxbus.Bus;
 import com.obviousengine.rxbus.RxBus;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
@@ -39,8 +41,10 @@ public final class DefaultBusStationTest {
     private final Sink<EventA> sinkA1 = mock(Sink.class);
     private final Sink<EventA> sinkA2 = mock(Sink.class);
     private final Flusher flusher = mock(Flusher.class);
+    private final ErrorListener errorListener = mock(ErrorListener.class);
     private final TestScheduler scheduler = Schedulers.test();
-    private final BusStation busStation = DefaultBusStation.create(bus, scheduler, flusher);
+    private final BusStation busStation = DefaultBusStation.create(
+            bus, scheduler, flusher, errorListener);
 
     @Before
     public void setUp() {
@@ -96,6 +100,56 @@ public final class DefaultBusStationTest {
         scheduler.triggerActions();
 
         verifyNoMoreInteractions(sinkA1);
+    }
+
+    @Test
+    public void singleSinkFlushWhenReceiveThrows() {
+        final Throwable error = new RuntimeException();
+        doAnswer(new Answer() {
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                throw error;
+            }
+        }).when(sinkA1).receive(eventA);
+
+        busStation.register(EventA.class, sinkA1);
+        busStation.publish(eventA);
+        scheduler.triggerActions();
+
+        verify(sinkA1).receive(eventA);
+        verify(sinkA1).flush();
+        verify(errorListener).onError(error);
+
+        verifyNoMoreInteractions(sinkA1);
+        verifyNoMoreInteractions(errorListener);
+    }
+
+    @Test
+    public void singleSinkReceiveAfterReceiveThrows() {
+        final Throwable error = new RuntimeException();
+        final AtomicBoolean thrown = new AtomicBoolean();
+        doAnswer(new Answer() {
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                if (thrown.compareAndSet(false, true)) {
+                    throw error;
+                } else {
+                    return null;
+                }
+            }
+        }).when(sinkA1).receive(eventA);
+
+        busStation.register(EventA.class, sinkA1);
+        busStation.publish(eventA);
+        busStation.publish(eventA);
+        scheduler.triggerActions();
+
+        verify(sinkA1, times(2)).receive(eventA);
+        verify(sinkA1, times(2)).flush();
+        verify(errorListener).onError(error);
+
+        verifyNoMoreInteractions(sinkA1);
+        verifyNoMoreInteractions(errorListener);
     }
 
 }

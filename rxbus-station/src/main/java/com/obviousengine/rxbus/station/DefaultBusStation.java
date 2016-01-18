@@ -26,16 +26,17 @@ import rx.Subscription;
 
 final class DefaultBusStation implements BusStation {
 
-    private final ConcurrentHashMap<Sink<?>, Subscription> subscriptions =
-            new ConcurrentHashMap<>(8);
+    private final Map<Sink<?>, Subscription> subscriptions = new ConcurrentHashMap<>(8);
     private final Map<Class<?>, Queue<?>> queues = new ConcurrentHashMap<>(4);
 
     private final Bus bus;
     private final Scheduler busScheduler;
     private final Flusher flusher;
+    private final ErrorListener errorListener;
 
-    public static BusStation create(Bus mainBus, Scheduler scheduler, Flusher flusher) {
-        return new DefaultBusStation(mainBus, scheduler, flusher);
+    public static BusStation create(Bus bus, Scheduler scheduler, Flusher flusher,
+                                    ErrorListener errorListener) {
+        return new DefaultBusStation(bus, scheduler, flusher, errorListener);
     }
 
     @Override
@@ -49,7 +50,7 @@ final class DefaultBusStation implements BusStation {
             if (!subscriptions.containsKey(sink)) {
                 Queue<T> queue = queue(eventClass);
                 subscriptions.put(sink, bus.subscribe(
-                        queue, new SinkSubscriber<>(sink, flusher), busScheduler));
+                        queue, new SinkSubscriber<>(sink, flusher, errorListener), busScheduler));
             }
         }
     }
@@ -83,10 +84,12 @@ final class DefaultBusStation implements BusStation {
 
         private final Sink<T> sink;
         private final Flusher flusher;
+        private final ErrorListener errorListener;
 
-        SinkSubscriber(Sink<T> sink, Flusher flusher) {
+        SinkSubscriber(Sink<T> sink, Flusher flusher, ErrorListener errorListener) {
             this.sink = sink;
             this.flusher = flusher;
+            this.errorListener = errorListener;
         }
 
         @Override
@@ -103,18 +106,21 @@ final class DefaultBusStation implements BusStation {
         public void onNext(T t) {
             try {
                 sink.receive(t);
-            } catch (Throwable e) {
-                //TODO(eleventigers): handle error
-                throw e;
+            } catch (Throwable throwable) {
+                // We want to continue using this subscriber even if the receiver throws
+                // so we just pass the error to a dedicated handler
+                errorListener.onError(throwable);
+            } finally {
+                flusher.schedule(sink);
             }
-
-            flusher.schedule(sink);
         }
     }
 
-    private DefaultBusStation(Bus bus, Scheduler busScheduler, Flusher flusher) {
+    private DefaultBusStation(Bus bus, Scheduler busScheduler, Flusher flusher,
+                              ErrorListener errorListener) {
         this.bus = bus;
         this.busScheduler = busScheduler;
         this.flusher = flusher;
+        this.errorListener = errorListener;
     }
 }
