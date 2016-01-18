@@ -98,9 +98,9 @@ final class DefaultDispatcher implements Dispatcher {
 
         @Override
         public String toString() {
-            return "StationSubscriber{" +
-                    "station=" + station +
-                    '}';
+            return "StationSubscriber{"
+                    + "station=" + station
+                    + '}';
         }
     }
 
