@@ -7,6 +7,7 @@ dependencies {
     compile project(':rxbus')
     testCompile rootProject.ext.junit
     testCompile rootProject.ext.mockito
+    testCompile rootProject.ext.truth
 }
 
 compileJava {
