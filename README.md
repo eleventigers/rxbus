@@ -18,32 +18,45 @@ Snapshots of the development version are available in [Sonatype's `snapshots` re
 Usage
 -----
 
-Basic use - event delivery transport tightly coupled by an event type:
+**Basic use - event delivery transport tightly coupled by an event type**
 
-```java
-// Create a default bus
-Bus bus = RxBus.create();
+* Create a default bus
 
-// or if you are on Android:
-Bus bus = RxAndroidBus.create();
+  ```java
+  Bus bus = RxBus.create();
+  ```
 
-// Prepare a Queue for an event type. You might want to maintain a collection of static queues as:
-public final class Queues {
-  public static final Queue<Event> TRACKING  = Queue.of(TrackingEvent.class).build();
-}
+  or if you are on Android:
 
-// Use a queue when subscribing
-Subscription subscription = bus.subscribe(Queues.TRACKING, new Observer<Event> {
-  ...
-  @Override
-  public void onNext(TrackingEvent event) {
-    // do something with the event
+  ```java
+  Bus bus = RxAndroidBus.create();
+  ```
+
+* Prepare a Queue for an event type. You might want to maintain a collection of static queues as:
+
+  ```java
+  public final class Queues {
+    public static final Queue<Event> TRACKING  = Queue.of(TrackingEvent.class).build();
   }
-})
+  ```
 
-// and publishing:
-bus.publish(Queues.TRACKING, new TrackingEvent())
-```
+* Use a queue when subscribing
+
+  ```java
+  Subscription subscription = bus.subscribe(Queues.TRACKING, new Observer<Event> {
+    ...
+    @Override
+    public void onNext(TrackingEvent event) {
+      // do something with the event
+    }
+  })
+  ```
+
+* and publishing:
+
+  ```java
+  bus.publish(Queues.TRACKING, new TrackingEvent())
+  ```
 
 
 Origin
