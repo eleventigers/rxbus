@@ -15,6 +15,50 @@ compile 'net.jokubasdargis.rxbus:rxbus-dispatcher:1.1.2'
 
 Snapshots of the development version are available in [Sonatype's `snapshots` repository][snap].
 
+Usage
+-----
+
+**Basic use - event delivery transport tightly coupled by an event type**
+
+* Create a default bus
+
+  ```java
+  Bus bus = RxBus.create();
+  ```
+
+  or if you are on Android:
+
+  ```java
+  Bus bus = RxAndroidBus.create();
+  ```
+
+* Prepare a Queue for an event type. You might want to maintain a collection of static queues as:
+
+  ```java
+  public final class Queues {
+    public static final Queue<Event> TRACKING  = Queue.of(TrackingEvent.class).build();
+  }
+  ```
+
+* Use a queue when subscribing
+
+  ```java
+  Subscription subscription = bus.subscribe(Queues.TRACKING, new Observer<Event> {
+    ...
+    @Override
+    public void onNext(TrackingEvent event) {
+      // do something with the event
+    }
+  })
+  ```
+
+* and publishing:
+
+  ```java
+  bus.publish(Queues.TRACKING, new TrackingEvent())
+  ```
+
+
 Origin
 ------
 Adapted from Soundcloud's reactive bus appraoch as seen in [mttkay's](https://github.com/mttkay) [Reactive Soundcloud](https://speakerdeck.com/mttkay/reactive-soundcloud-tackling-complexity-in-large-applications) slides:
