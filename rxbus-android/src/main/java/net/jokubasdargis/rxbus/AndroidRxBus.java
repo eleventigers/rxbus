@@ -44,6 +44,10 @@ public final class AndroidRxBus implements Bus {
         });
     }
 
+    public static AndroidRxBus create(RxBus.Logger logger) {
+        return create(new AndroidQueueCache(), logger);
+    }
+
     public static AndroidRxBus create(RxBus.QueueCache cache, RxBus.Logger logger) {
         return new AndroidRxBus(cache, logger);
     }
