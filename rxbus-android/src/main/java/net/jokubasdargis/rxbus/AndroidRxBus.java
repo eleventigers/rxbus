@@ -19,6 +19,7 @@ package net.jokubasdargis.rxbus;
 import android.util.Log;
 import android.util.SparseArray;
 
+import rx.Observable;
 import rx.Observer;
 import rx.Scheduler;
 import rx.Subscription;
@@ -66,8 +67,8 @@ public final class AndroidRxBus implements Bus {
     }
 
     @Override
-    public <T> Subject<T, T> queue(Queue<T> queue) {
-        return bus.queue(queue);
+    public <T> Observable<T> asObservable(Queue<T> queue) {
+        return bus.asObservable(queue);
     }
 
     @Override
