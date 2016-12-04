@@ -16,6 +16,8 @@
 
 package net.jokubasdargis.rxbus;
 
+import com.jakewharton.rxrelay.Relay;
+
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 import java.util.Collections;
@@ -30,11 +32,11 @@ import rx.Observer;
 import rx.Scheduler;
 import rx.Subscription;
 import rx.schedulers.Schedulers;
-import rx.subjects.Subject;
 
 /**
  * A basic implementation of {@link Bus} with {@link Queue} caching and logging capabilities.
  */
+@SuppressWarnings("WeakerAccess")
 public final class RxBus implements Bus {
 
     /**
@@ -74,13 +76,13 @@ public final class RxBus implements Bus {
     }
 
     /**
-     * Classes implementing this interface provide a cache of {@link Subject}s associated to
+     * Classes implementing this interface provide a cache of {@link Relay}s associated to
      * {@link Queue}s used by the {@link RxBus}.
      */
     public interface QueueCache {
-        <T> Subject<T, T> get(Queue<T> queue);
+        <T> Relay<T, T> get(Queue<T> queue);
 
-        <T> void put(Queue<T> queue, Subject<T, T> subject);
+        <T> void put(Queue<T> queue, Relay<T, T> subject);
     }
 
     private final QueueCache cache;
@@ -105,22 +107,22 @@ public final class RxBus implements Bus {
         if (shouldLog()) {
             logEvent(queue, event);
         }
-        queue(queue).onNext(event);
+        queue(queue).call(event);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public <T> Subject<T, T> queue(Queue<T> queue) {
-        Subject<T, T> subject = cache.get(queue);
+    public <T> Relay<T, T> queue(Queue<T> queue) {
+        Relay<T, T> subject = cache.get(queue);
         if (subject == null) {
             if (queue.getDefaultEvent() != null) {
-                subject = ReplayEventSubject.create(queue.getDefaultEvent());
+                subject = ReplayEventRelay.create(queue.getDefaultEvent());
             } else if (queue.isReplayLast()) {
-                subject = ReplayEventSubject.create();
+                subject = ReplayEventRelay.create();
             } else {
-                subject = DefaultEventSubject.create();
+                subject = DefaultEventRelay.create();
             }
             cache.put(queue, subject);
         }
@@ -161,12 +163,12 @@ public final class RxBus implements Bus {
     }
 
     private void logEvent(Queue queue, Object obj) {
-        StringBuilder stringbuilder = new StringBuilder();
-        stringbuilder.append("Publishing to ").append(queue.getName());
-        stringbuilder.append(" [").append(obj).append("]\n");
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("Publishing to ").append(queue.getName());
+        stringBuilder.append(" [").append(obj).append("]\n");
         List list = loggedObservers.get(queue.getId());
         if (list != null && !list.isEmpty()) {
-            stringbuilder.append("Delivering to: \n");
+            stringBuilder.append("Delivering to: \n");
             Iterator iterator = list.iterator();
             do {
                 if (!iterator.hasNext()) {
@@ -174,31 +176,31 @@ public final class RxBus implements Bus {
                 }
                 Observer observer = (Observer) ((Reference) iterator.next()).get();
                 if (observer != null) {
-                    stringbuilder
+                    stringBuilder
                             .append("-> ")
                             .append(observer.getClass().getCanonicalName())
                             .append('\n');
                 }
             } while (true);
         } else {
-            stringbuilder.append("No observers found.");
+            stringBuilder.append("No observers found.");
         }
-        logger.log(stringbuilder.toString());
+        logger.log(stringBuilder.toString());
     }
 
-    private static final class DefaultQueueCache implements QueueCache {
+    static final class DefaultQueueCache implements QueueCache {
 
-        private final Map<Queue<?>, Subject<?, ?>> map
-                = Collections.synchronizedMap(new WeakHashMap<Queue<?>, Subject<?, ?>>());
+        private final Map<Queue<?>, Relay<?, ?>> map
+                = Collections.synchronizedMap(new WeakHashMap<Queue<?>, Relay<?, ?>>());
 
         @Override
         @SuppressWarnings("unchecked")
-        public <T> Subject<T, T> get(Queue<T> queue) {
-            return (Subject<T, T>) map.get(queue);
+        public <T> Relay<T, T> get(Queue<T> queue) {
+            return (Relay<T, T>) map.get(queue);
         }
 
         @Override
-        public <T> void put(Queue<T> queue, Subject<T, T> subject) {
+        public <T> void put(Queue<T> queue, Relay<T, T> subject) {
             map.put(queue, subject);
         }
     }

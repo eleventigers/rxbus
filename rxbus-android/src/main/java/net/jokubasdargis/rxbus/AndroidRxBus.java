@@ -19,16 +19,18 @@ package net.jokubasdargis.rxbus;
 import android.util.Log;
 import android.util.SparseArray;
 
+import com.jakewharton.rxrelay.Relay;
+
 import rx.Observer;
 import rx.Scheduler;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
-import rx.subjects.Subject;
 
 /**
  * Simple {@link Bus} implementation with {@link Queue} caching and logging specific
  * to the Android platform. By default subscriptions are observed on the main thread.
  */
+@SuppressWarnings("WeakerAccess")
 public final class AndroidRxBus implements Bus {
 
     public static AndroidRxBus create() {
@@ -66,7 +68,7 @@ public final class AndroidRxBus implements Bus {
     }
 
     @Override
-    public <T> Subject<T, T> queue(Queue<T> queue) {
+    public <T> Relay<T, T> queue(Queue<T> queue) {
         return bus.queue(queue);
     }
 
@@ -82,16 +84,16 @@ public final class AndroidRxBus implements Bus {
 
     private static final class AndroidQueueCache implements RxBus.QueueCache {
 
-        private final SparseArray<Subject<?, ?>> sparseArray = new SparseArray<>();
+        private final SparseArray<Relay<?, ?>> sparseArray = new SparseArray<>();
 
         @Override
         @SuppressWarnings("unchecked")
-        public <T> Subject<T, T> get(Queue<T> queue) {
-            return (Subject<T, T>) sparseArray.get(queue.getId());
+        public <T> Relay<T, T> get(Queue<T> queue) {
+            return (Relay<T, T>) sparseArray.get(queue.getId());
         }
 
         @Override
-        public <T> void put(Queue<T> queue, Subject<T, T> subject) {
+        public <T> void put(Queue<T> queue, Relay<T, T> subject) {
             sparseArray.put(queue.getId(), subject);
         }
     }

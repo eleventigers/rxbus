@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 import rx.Scheduler;
 import rx.schedulers.Schedulers;
 
+@SuppressWarnings("WeakerAccess")
 public final class RxBusDispatcher {
 
     public static Builder builder() {

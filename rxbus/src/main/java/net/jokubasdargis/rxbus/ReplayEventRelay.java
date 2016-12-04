@@ -16,38 +16,31 @@
 
 package net.jokubasdargis.rxbus;
 
+import com.jakewharton.rxrelay.BehaviorRelay;
+import com.jakewharton.rxrelay.Relay;
+
 import rx.Subscriber;
-import rx.subjects.BehaviorSubject;
-import rx.subjects.Subject;
 
-final class ReplayEventSubject<T> extends Subject<T, T> {
+final class ReplayEventRelay<T> extends Relay<T, T> {
 
-    public static <T> ReplayEventSubject<T> create() {
-        return new ReplayEventSubject<>(new OnSubscribeFunc<T>(null));
+    public static <T> ReplayEventRelay<T> create() {
+        return new ReplayEventRelay<>(new OnSubscribeFunc<T>(null));
     }
 
-    public static <T> ReplayEventSubject<T> create(T event) {
-        return new ReplayEventSubject<>(new OnSubscribeFunc<>(event));
+    public static <T> ReplayEventRelay<T> create(T event) {
+        return new ReplayEventRelay<>(new OnSubscribeFunc<>(event));
     }
 
-    private final Subject<T, T> wrappedSubject;
+    private final Relay<T, T> wrappedSubject;
 
-    private ReplayEventSubject(OnSubscribeFunc<T> onSubscribeFunc) {
+    private ReplayEventRelay(OnSubscribeFunc<T> onSubscribeFunc) {
         super(onSubscribeFunc);
-        wrappedSubject = onSubscribeFunc.subject;
+        wrappedSubject = onSubscribeFunc.relay;
     }
 
     @Override
-    public void onCompleted() {
-    }
-
-    @Override
-    public void onError(Throwable throwable) {
-    }
-
-    @Override
-    public void onNext(T event) {
-        wrappedSubject.onNext(event);
+    public void call(T event) {
+        wrappedSubject.call(event);
     }
 
     @Override
@@ -57,19 +50,19 @@ final class ReplayEventSubject<T> extends Subject<T, T> {
 
     private static final class OnSubscribeFunc<T> implements OnSubscribe<T> {
 
-        private final BehaviorSubject<T> subject;
+        private final BehaviorRelay<T> relay;
 
         private OnSubscribeFunc(T event) {
             if (event == null) {
-                subject = BehaviorSubject.create();
+                relay = BehaviorRelay.create();
             } else {
-                subject = BehaviorSubject.create(event);
+                relay = BehaviorRelay.create(event);
             }
         }
 
         @Override
         public void call(Subscriber<? super T> subscriber) {
-            subject.subscribe(subscriber);
+            relay.subscribe(subscriber);
         }
     }
 }

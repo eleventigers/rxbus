@@ -18,71 +18,82 @@ package net.jokubasdargis.rxbus;
 
 import com.jakewharton.rxrelay.Relay;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
+import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.junit.Test;
-
 import rx.Observer;
 import rx.Subscription;
+import rx.schedulers.Schedulers;
+import rx.schedulers.TestScheduler;
 import rx.subscriptions.CompositeSubscription;
 
-public final class RxBusTest {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+
+public final class AndroidRxBusTest {
+
+    private final static RxBus.Logger SYSTEM_LOGGER = new RxBus.Logger() {
+        @Override
+        public void log(String message) {
+            System.out.println(message);
+        }
+    };
 
     private final Queue<Event> events = Queue.of(Event.class).name("TestQueue").build();
+    private final RxBus.QueueCache queueCache = new RxBus.DefaultQueueCache();
+    private final TestScheduler testScheduler = Schedulers.test();
+
+    @Test
+    public void create() {
+        Bus bus = AndroidRxBus.create();
+        assertNotNull(bus);
+    }
+
+    @Test
+    public void createWithLogger() {
+        Bus bus = AndroidRxBus.create(SYSTEM_LOGGER);
+        assertNotNull(bus);
+    }
 
     @Test
     public void queueAsRelay() {
-        Bus bus = RxBus.create();
+        Bus bus = AndroidRxBus.create(queueCache, SYSTEM_LOGGER);
         Relay<Event, Event> subject = bus.queue(events);
         assertNotNull(subject);
     }
 
     @Test
     public void publishEvent() {
-        Bus bus = RxBus.create();
+        Bus bus = AndroidRxBus.create(queueCache, SYSTEM_LOGGER);
         Observer<Event> observer = spy(new PrintingObserver<Event>());
-        Subscription subscription = bus.subscribe(events, observer);
+        Subscription subscription = bus.subscribe(events, observer, testScheduler);
         Event event = Event.create();
         bus.publish(events, event);
+        testScheduler.triggerActions();
         subscription.unsubscribe();
         verify(observer).onNext(event);
         verify(observer, never()).onCompleted();
     }
 
     @Test
-    public void loggerLogs() {
-        RxBus.Logger logger = spy(new RxBus.Logger() {
-            @Override
-            public void log(String message) {
-                System.out.println(message);
-            }
-        });
-        Bus bus = RxBus.create(logger);
-        bus.publish(events, Event.create());
-        verify(logger).log(anyString());
-    }
-
-    @Test
     public void oneQueueMultipleObservers() {
-        Bus bus = RxBus.create();
+        Bus bus = AndroidRxBus.create(queueCache, SYSTEM_LOGGER);
         CompositeSubscription subscriptions = new CompositeSubscription();
         List<Observer<Event>> observers = new ArrayList<>();
         for (int i = 0; i < 100; i++) {
             Observer<Event> observer = spy(new NoopObserver<Event>());
             observers.add(observer);
-            subscriptions.add(bus.subscribe(events, observer));
+            subscriptions.add(bus.subscribe(events, observer, testScheduler));
         }
         Event event = Event.create();
         bus.publish(events, event);
+        testScheduler.triggerActions();
         subscriptions.unsubscribe();
         for (Observer<Event> observer : observers) {
             verify(observer).onNext(event);
@@ -91,18 +102,23 @@ public final class RxBusTest {
 
     @Test
     public void allEventsGoThrough() {
-        final int numEvents = 1000;
-        Bus bus = RxBus.create();
+        final int numEvents = 100;
+        Bus bus = AndroidRxBus.create(queueCache, SYSTEM_LOGGER);
         CountingObserver observer = new CountingObserver();
-        Subscription subscription = bus.subscribe(events, observer);
+        Subscription subscription = bus.queue(events)
+                .onBackpressureBuffer()
+                .observeOn(testScheduler)
+                .subscribe(observer);
         for (int i = 0; i < numEvents; i++) {
             bus.publish(events, Event.create());
         }
+        testScheduler.triggerActions();
         subscription.unsubscribe();
         assertEquals(numEvents, observer.getCount());
     }
 
     private static class PrintingObserver<V> implements Observer<V> {
+
         @Override
         public void onCompleted() {
             System.out.println("onComplete() called");
@@ -143,6 +159,7 @@ public final class RxBusTest {
     }
 
     private static class NoopObserver<V> implements Observer<V> {
+
         @Override
         public void onCompleted() {
         }
