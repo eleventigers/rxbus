@@ -16,10 +16,10 @@
 
 package net.jokubasdargis.rxbus;
 
+import rx.Observable;
 import rx.Observer;
 import rx.Scheduler;
 import rx.Subscription;
-import rx.subjects.Subject;
 
 /**
  * Event notification system which enforces use of dedicated queues to perform type safe pub/sub.
@@ -42,8 +42,9 @@ public interface Bus {
     <T> void publish(Queue<T> queue, T event);
 
     /**
-     * Converts the given {@link Queue} to a {@link Subject} to be used
+     * Converts the given {@link Queue} to a {@link Observable} to be used
      * outside the bus context (when combining Rx streams).
      */
-    <T> Subject<T, T> queue(Queue<T> queue);
+    <T> Observable<T> asObservable(Queue<T> queue);
+
 }

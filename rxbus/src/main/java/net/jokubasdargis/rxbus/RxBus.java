@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
 
+import rx.Observable;
 import rx.Observer;
 import rx.Scheduler;
 import rx.Subscription;
@@ -112,7 +113,14 @@ public final class RxBus implements Bus {
      * {@inheritDoc}
      */
     @Override
-    public <T> Subject<T, T> queue(Queue<T> queue) {
+    public <T> Observable<T> asObservable(Queue<T> queue) {
+        return queue(queue).asObservable();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    private  <T> Subject<T, T> queue(Queue<T> queue) {
         Subject<T, T> subject = cache.get(queue);
         if (subject == null) {
             if (queue.getDefaultEvent() != null) {
