@@ -6,11 +6,11 @@ Download
 --------
 Gradle:
 ```groovy
-compile 'net.jokubasdargis.rxbus:rxbus:1.2.0'
+compile 'net.jokubasdargis.rxbus:rxbus:2.0.0'
 
 // Optional
-compile 'net.jokubasdargis.rxbus:rxbus-android:1.2.0'
-compile 'net.jokubasdargis.rxbus:rxbus-dispatcher:1.2.0'
+compile 'net.jokubasdargis.rxbus:rxbus-android:2.0.0'
+compile 'net.jokubasdargis.rxbus:rxbus-dispatcher:2.0.0'
 ```
 
 Snapshots of the development version are available in [Sonatype's `snapshots` repository][snap].
