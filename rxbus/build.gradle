@@ -3,6 +3,7 @@ apply from: rootProject.file('gradle/checkstyle.gradle')
 
 dependencies {
     compile rootProject.ext.rxJava
+    compile rootProject.ext.rxRelay
     testCompile rootProject.ext.junit
     testCompile rootProject.ext.mockito
 }

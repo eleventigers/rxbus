@@ -23,6 +23,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * @param <T> Type of event this queue supports.
  */
+@SuppressWarnings("WeakerAccess")
 public final class Queue<T> {
 
     /**

@@ -32,7 +32,7 @@ final class DefaultFlusher implements Flusher {
     private final FlushAction flushAction = new FlushAction();
     private final SerialSubscription subscription = new SerialSubscription();
 
-    public static Flusher create(Scheduler scheduler, long flushDelay, TimeUnit flushDelayUnit) {
+    static Flusher create(Scheduler scheduler, long flushDelay, TimeUnit flushDelayUnit) {
         return new DefaultFlusher(scheduler, flushDelay, flushDelayUnit);
     }
 

@@ -31,7 +31,7 @@ final class DefaultDispatcher implements Dispatcher {
     private final Flusher flusher;
     private final ErrorListener errorListener;
 
-    public static Dispatcher create(Bus bus, Scheduler scheduler, Flusher flusher,
+    static Dispatcher create(Bus bus, Scheduler scheduler, Flusher flusher,
                                     ErrorListener errorListener) {
         return new DefaultDispatcher(bus, scheduler, flusher, errorListener);
     }
