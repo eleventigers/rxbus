@@ -21,16 +21,16 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
-public class QueueTest {
+public final class QueueTest {
 
     @Test
-    public void buildQueueOfEventType() throws Exception {
+    public void buildQueueOfEventType() {
         Queue<Event> queue = Queue.of(Event.class).build();
         assertTrue(Event.class.equals(queue.getEventType()));
     }
 
     @Test
-    public void buildQueueWithName() throws Exception {
+    public void buildQueueWithName() {
         Queue<Event> queue = Queue.of(Event.class)
                 .name("TestQueue")
                 .build();
@@ -38,7 +38,7 @@ public class QueueTest {
     }
 
     @Test
-    public void incrementingQueueId() throws Exception {
+    public void incrementingQueueId() {
         Queue<Event> queue1 = Queue.of(Event.class).build();
         Queue<Event> queue2 = Queue.of(Event.class).build();
         assertTrue(queue1.getId() < queue2.getId());

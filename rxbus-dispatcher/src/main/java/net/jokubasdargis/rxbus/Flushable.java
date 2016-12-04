@@ -16,6 +16,7 @@
 
 package net.jokubasdargis.rxbus;
 
+@SuppressWarnings("WeakerAccess")
 public interface Flushable {
 
     void flush();

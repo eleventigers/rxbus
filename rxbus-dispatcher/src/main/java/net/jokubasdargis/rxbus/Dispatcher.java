@@ -16,6 +16,7 @@
 
 package net.jokubasdargis.rxbus;
 
+@SuppressWarnings("WeakerAccess")
 public interface Dispatcher {
 
     <T> void publish(Queue<T> queue, T event);

@@ -16,47 +16,40 @@
 
 package net.jokubasdargis.rxbus;
 
+import com.jakewharton.rxrelay.PublishRelay;
+import com.jakewharton.rxrelay.Relay;
+
 import rx.Subscriber;
-import rx.subjects.PublishSubject;
-import rx.subjects.Subject;
 
-final class DefaultEventSubject<T> extends Subject<T, T> {
+final class DefaultEventRelay<T> extends Relay<T, T> {
 
-    public static <T> DefaultEventSubject<T> create() {
-        return new DefaultEventSubject<>(new OnSubscribeFunc<T>());
+    public static <T> DefaultEventRelay<T> create() {
+        return new DefaultEventRelay<>(new OnSubscribeFunc<T>());
     }
 
-    private final Subject<T, T> wrappedSubject;
+    private final Relay<T, T> wrappedRelay;
 
-    private DefaultEventSubject(OnSubscribeFunc<T> onSubscribeFunc) {
+    private DefaultEventRelay(OnSubscribeFunc<T> onSubscribeFunc) {
         super(onSubscribeFunc);
-        wrappedSubject = onSubscribeFunc.subject;
+        wrappedRelay = onSubscribeFunc.relay;
     }
 
     @Override
-    public void onCompleted() {
-    }
-
-    @Override
-    public void onError(Throwable throwable) {
-    }
-
-    @Override
-    public void onNext(T event) {
-        wrappedSubject.onNext(event);
+    public void call(T event) {
+        wrappedRelay.call(event);
     }
 
     @Override
     public boolean hasObservers() {
-        return wrappedSubject.hasObservers();
+        return wrappedRelay.hasObservers();
     }
 
     private static final class OnSubscribeFunc<T> implements OnSubscribe<T> {
 
-        private final PublishSubject<T> subject = PublishSubject.create();
+        private final PublishRelay<T> relay = PublishRelay.create();
 
         public void call(Subscriber<? super T> subscriber) {
-            subject.subscribe(subscriber);
+            relay.subscribe(subscriber);
         }
     }
 }
