@@ -64,8 +64,8 @@ public final class AndroidRxBusTest {
     @Test
     public void queueAsRelay() {
         Bus bus = AndroidRxBus.create(queueCache, SYSTEM_LOGGER);
-        Relay<Event, Event> subject = bus.queue(events);
-        assertNotNull(subject);
+        Relay<Event, Event> relay = bus.queue(events);
+        assertNotNull(relay);
     }
 
     @Test

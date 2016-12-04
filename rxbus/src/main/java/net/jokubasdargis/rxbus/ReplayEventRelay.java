@@ -31,21 +31,21 @@ final class ReplayEventRelay<T> extends Relay<T, T> {
         return new ReplayEventRelay<>(new OnSubscribeFunc<>(event));
     }
 
-    private final Relay<T, T> wrappedSubject;
+    private final Relay<T, T> wrappedRelay;
 
     private ReplayEventRelay(OnSubscribeFunc<T> onSubscribeFunc) {
         super(onSubscribeFunc);
-        wrappedSubject = onSubscribeFunc.relay;
+        wrappedRelay = onSubscribeFunc.relay;
     }
 
     @Override
     public void call(T event) {
-        wrappedSubject.call(event);
+        wrappedRelay.call(event);
     }
 
     @Override
     public boolean hasObservers() {
-        return wrappedSubject.hasObservers();
+        return wrappedRelay.hasObservers();
     }
 
     private static final class OnSubscribeFunc<T> implements OnSubscribe<T> {

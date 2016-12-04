@@ -42,8 +42,8 @@ public final class RxBusTest {
     @Test
     public void queueAsRelay() {
         Bus bus = RxBus.create();
-        Relay<Event, Event> subject = bus.queue(events);
-        assertNotNull(subject);
+        Relay<Event, Event> relay = bus.queue(events);
+        assertNotNull(relay);
     }
 
     @Test

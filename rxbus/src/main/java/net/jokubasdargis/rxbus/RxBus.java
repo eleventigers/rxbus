@@ -82,7 +82,7 @@ public final class RxBus implements Bus {
     public interface QueueCache {
         <T> Relay<T, T> get(Queue<T> queue);
 
-        <T> void put(Queue<T> queue, Relay<T, T> subject);
+        <T> void put(Queue<T> queue, Relay<T, T> relay);
     }
 
     private final QueueCache cache;
@@ -115,18 +115,18 @@ public final class RxBus implements Bus {
      */
     @Override
     public <T> Relay<T, T> queue(Queue<T> queue) {
-        Relay<T, T> subject = cache.get(queue);
-        if (subject == null) {
+        Relay<T, T> relay = cache.get(queue);
+        if (relay == null) {
             if (queue.getDefaultEvent() != null) {
-                subject = ReplayEventRelay.create(queue.getDefaultEvent());
+                relay = ReplayEventRelay.create(queue.getDefaultEvent());
             } else if (queue.isReplayLast()) {
-                subject = ReplayEventRelay.create();
+                relay = ReplayEventRelay.create();
             } else {
-                subject = DefaultEventRelay.create();
+                relay = DefaultEventRelay.create();
             }
-            cache.put(queue, subject);
+            cache.put(queue, relay);
         }
-        return subject;
+        return relay;
     }
 
     /**
@@ -200,8 +200,8 @@ public final class RxBus implements Bus {
         }
 
         @Override
-        public <T> void put(Queue<T> queue, Relay<T, T> subject) {
-            map.put(queue, subject);
+        public <T> void put(Queue<T> queue, Relay<T, T> relay) {
+            map.put(queue, relay);
         }
     }
 }

@@ -93,8 +93,8 @@ public final class AndroidRxBus implements Bus {
         }
 
         @Override
-        public <T> void put(Queue<T> queue, Relay<T, T> subject) {
-            sparseArray.put(queue.getId(), subject);
+        public <T> void put(Queue<T> queue, Relay<T, T> relay) {
+            sparseArray.put(queue.getId(), relay);
         }
     }
 }
