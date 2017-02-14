@@ -1,3 +1,3 @@
 rootProject.name = 'rxbus-root'
 
-include ':rxbus', ':rxbus-android', 'rxbus-dispatcher'
+include ':rxbus', ':rxbus-android', 'rxbus-dispatcher', ':rxbus2', ':rxbus2-android', ':rxbus2-example'
